@@ -1,0 +1,1020 @@
+Index: test/code-analyzer.test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/code-analyzer.test.js	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ test/code-analyzer.test.js	(date 1543011924249)
+@@ -1,5 +1,5 @@
+ import assert from 'assert';
+-import {parseCode} from '../src/js/code-analyzer';
++import {parseCode, start_parse} from '../src/js/code-analyzer';
+ 
+ describe('The javascript parser', () => {
+     it('is parsing an empty function correctly', () => {
+@@ -15,4 +15,109 @@
+             '{"type":"Program","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"a"},"init":{"type":"Literal","value":1,"raw":"1"}}],"kind":"let"}],"sourceType":"script"}'
+         );
+     });
++
++    it('is parsing an if statement correctly', () => {    //test 3
++        let parsed = parseCode('if(a[0]>9){\n' + 'let x=1;\n' + '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"if statement","Name":"","Condition":"a[0] > 9","Value":""},{"Line":2,"Type":"variable declaration","Name":"x","Condition":"","Value":"1"}]"'
++        );
++    });
++
++    it('is parsing an if + else statement correctly', () => {    //test 4
++        let parsed = parseCode('if(a[0]>9){\n' + 'let x=1;\n' +
++            '}\n' + 'else{\n' + 'let x=2;\n' + '}\n');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"if statement","Name":"","Condition":"a[0] > 9","Value":""},{"Line":2,"Type":"variable declaration","Name":"x","Condition":"","Value":"1"},{"Line":4,"Type":"else statement","Name":"","Condition":"","Value":""},{"Line":5,"Type":"variable declaration","Name":"x","Condition":"","Value":"2"}]'
++        );
++    });
++
++    it('is parsing an if + else if +else statement correctly', () => {    //test 5
++        let parsed = parseCode('if(a[0]>9){\n' + 'let x=1;\n' +
++            '}\n' + 'else if(a[0]<8){\n' + 'let x=2;\n' +
++            '}\n' + 'else{\n' + 'let x=0;\n' + '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"if statement","Name":"","Condition":"a[0] > 9","Value":""},{"Line":2,"Type":"variable declaration","Name":"x","Condition":"","Value":"1"},{"Line":4,"Type":"else if statement","Name":"","Condition":"a[0] < 8","Value":""},{"Line":5,"Type":"variable declaration","Name":"x","Condition":"","Value":"2"},{"Line":7,"Type":"else statement","Name":"","Condition":"","Value":""},{"Line":8,"Type":"variable declaration","Name":"x","Condition":"","Value":"0"}]'
++        );
++    });
++
++    it('is parsing a function declaration correctly, without body, with params', () => {    //test 6
++        let parsed = parseCode('function go(a, b, c){}\n');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"function declaration","Name":"go","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"a","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"b","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"c","Condition":"","Value":""}]'
++        );
++    });
++
++    it('is parsing a function declaration correctly, with a return statement', () => {    //test 7
++        let parsed = parseCode('function go(a, b){\n' +
++            'return a+b;\n' +
++            '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"function declaration","Name":"go","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"a","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"b","Condition":"","Value":""},{"Line":2,"Type":"return statement","Name":"","Condition":"","Value":"a + b"}]'
++        );
++    });
++
++    it('is parsing a for statement correctly', () => {    //test 8
++        let parsed = parseCode('for(i=0;i<5;i++){}\n' +
++            'for(i=0;i<5;i++){\n' + 'x[i]=3;\n' +
++            'x[i]--;\n' + '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"for statement","Name":"","Condition":"i = 0;i < 5;i++","Value":""},{"Line":2,"Type":"for statement","Name":"","Condition":"i = 0;i < 5;i++","Value":""},{"Line":3,"Type":"assignment expression","Name":"x[i]","Condition":"","Value":"3"},{"Line":4,"Type":"update expression","Name":"x[i]","Condition":"","Value":"x[i]- 1"}]'
++        );
++    });
++
++    it('is parsing a while and do while statements correctly', () => {    //test 9
++        let parsed = parseCode('while(i<10){\n' +
++            'while(x[0]<3){\n' + 'let x = [];\n' + 'x[0]=i;\n' +
++            '}\n' + 'while(true){}\n' + '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"while statement","Name":"","Condition":"i < 10","Value":""},{"Line":2,"Type":"while statement","Name":"","Condition":"x[0] < 3","Value":""},{"Line":3,"Type":"variable declaration","Name":"x","Condition":"","Value":"[]"},{"Line":4,"Type":"assignment expression","Name":"x[0]","Condition":"","Value":"i"},{"Line":6,"Type":"while statement","Name":"","Condition":"true","Value":""}]'
++        );
++    });
++
++    it('is parsing a while and do while statements correctly', () => {    //test 9
++        let parsed = parseCode('while(i<10){\n' + 'while(x[0]<3){\n' +
++            'let x = [];\n' + 'x[0]=i;\n' + '}\n' +
++            'while(true){}\n' + '}\n' + 'do{\n' +
++            'x=x+2;\n' + '}while(x<10);');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"while statement","Name":"","Condition":"i < 10","Value":""},{"Line":2,"Type":"while statement","Name":"","Condition":"x[0] < 3","Value":""},{"Line":3,"Type":"variable declaration","Name":"x","Condition":"","Value":"[]"},{"Line":4,"Type":"assignment expression","Name":"x[0]","Condition":"","Value":"i"},{"Line":6,"Type":"while statement","Name":"","Condition":"true","Value":""},{"Line":8,"Type":"do while statement","Name":"","Condition":"x < 10","Value":""},{"Line":9,"Type":"assignment expression","Name":"x","Condition":"","Value":"x + 2"}]'
++        );
++    });
++
++    it('is parsing an expression statements (call, update) correctly', () => {    //test 9
++        let parsed = parseCode('let a=1, b;\n' + 'if (a>5)\n' +
++            'f(a);\n' + 'if (a<5){\n' + 'for(i=0;i<a;i++){\n' +
++            'b=a-1;\n' + 'b++;\n' + '}\n' + '}');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"variable declaration","Name":"a","Condition":"","Value":"1"},{"Line":1,"Type":"variable declaration","Name":"b","Condition":"","Value":""},{"Line":2,"Type":"if statement","Name":"","Condition":"a > 5","Value":""},{"Line":3,"Type":"call expression","Name":"f(a)","Condition":"","Value":""},{"Line":4,"Type":"if statement","Name":"","Condition":"a < 5","Value":""},{"Line":5,"Type":"for statement","Name":"","Condition":"i = 0;i < a;i++","Value":""},{"Line":6,"Type":"assignment expression","Name":"b","Condition":"","Value":"a - 1"},{"Line":7,"Type":"update expression","Name":"b","Condition":"","Value":"b+ 1"}]'
++        );
++    });
++
++    it('is parsing an empty code correctly', () => {    //test 10
++        let parsed = parseCode('');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[]'
++        );
++    });
++
++    /*it('is parsing a functioin example correctly', () => {    //test 11
++        let parsed = parseCode('function toCelsius(fahrenheit) {\n' +
++            '    return (5/9) * (fahrenheit-32);\n' +
++            '}\n' +
++            'document.getElementById("demo").innerHTML = toCelsius;');
++        assert.equal(
++            JSON.stringify(start_parse(parsed)),
++            '[{"Line":1,"Type":"function declaration","Name":"toCelsius","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"fahrenheit","Condition":"","Value":""},{"Line":2,"Type":"return statement","Name":"","Condition":"","Value":"5 / 9 * (fahrenheit - 32)"},{"Line":4,"Type":"assignment expression","Name":"document.getElementById(\'demo\').innerHTML","Condition":"","Value":"toCelsius"}]'
++        );
++    }); */
+ });
+Index: index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- index.html	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ index.html	(date 1543011894300)
+@@ -1,4 +1,4 @@
+-npm run coverage<!DOCTYPE html>
++<!DOCTYPE html>
+ <html lang="en">
+     <head>
+         <meta charset="UTF-8">
+@@ -7,6 +7,7 @@
+             table {
+                 width: 100%;
+                 height: 100%;
++                border-collapse: collapse;
+             }
+ 
+             .textAreaWrapper {
+@@ -18,6 +19,18 @@
+                 width: 80%;
+                 height: 95%;
+             }
++            #info_table th {
++                padding-top: 5px;
++                padding-bottom: 5px;
++                text-align: center;
++                font-size: 22px;
++            }
++            #info_table td {
++                padding-top: 5px;
++                padding-bottom: 5px;
++                text-align: center;
++                font-size: 18px;
++            }
+         </style>
+     </head>
+     <body>
+@@ -57,6 +70,18 @@
+             </tr>
+         </table>
+ 
+-        <script src="dist/bundle.js"></script>
++        <table id="info_table">
++            <thead>
++                <tr>
++                    <th>Line</th>
++                    <th>Type</th>
++                    <th>Name</th>
++                    <th>Condition</th>
++                    <th>Value</th>
++                </tr>
++            </thead>
++        </table>
++
++        <script type="module" src="dist/bundle.js"></script>
+     </body>
+ </html>
+\ No newline at end of file
+Index: package-lock.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- package-lock.json	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ package-lock.json	(date 1542903412187)
+@@ -2292,8 +2292,7 @@
+         "deep-is": {
+             "version": "0.1.3",
+             "resolved": "https://registry.npmjs.org/deep-is/-/deep-is-0.1.3.tgz",
+-            "integrity": "sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=",
+-            "dev": true
++            "integrity": "sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ="
+         },
+         "define-properties": {
+             "version": "1.1.2",
+@@ -2569,6 +2568,31 @@
+             "integrity": "sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=",
+             "dev": true
+         },
++        "escodegen": {
++            "version": "1.11.0",
++            "resolved": "https://registry.npmjs.org/escodegen/-/escodegen-1.11.0.tgz",
++            "integrity": "sha512-IeMV45ReixHS53K/OmfKAIztN/igDHzTJUhZM3k1jMhIZWjk45SMwAtBsEXiJp3vSPmTcu6CXn7mDvFHRN66fw==",
++            "requires": {
++                "esprima": "3.1.3",
++                "estraverse": "4.2.0",
++                "esutils": "2.0.2",
++                "optionator": "0.8.2",
++                "source-map": "0.6.1"
++            },
++            "dependencies": {
++                "esprima": {
++                    "version": "3.1.3",
++                    "resolved": "https://registry.npmjs.org/esprima/-/esprima-3.1.3.tgz",
++                    "integrity": "sha1-/cpRzuYTOJXjyI1TXOSdv/YqRjM="
++                },
++                "source-map": {
++                    "version": "0.6.1",
++                    "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",
++                    "integrity": "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==",
++                    "optional": true
++                }
++            }
++        },
+         "eslint": {
+             "version": "5.1.0",
+             "resolved": "https://registry.npmjs.org/eslint/-/eslint-5.1.0.tgz",
+@@ -2674,14 +2698,12 @@
+         "estraverse": {
+             "version": "4.2.0",
+             "resolved": "https://registry.npmjs.org/estraverse/-/estraverse-4.2.0.tgz",
+-            "integrity": "sha1-De4/7TH81GlhjOc0IJn8GvoL2xM=",
+-            "dev": true
++            "integrity": "sha1-De4/7TH81GlhjOc0IJn8GvoL2xM="
+         },
+         "esutils": {
+             "version": "2.0.2",
+             "resolved": "https://registry.npmjs.org/esutils/-/esutils-2.0.2.tgz",
+-            "integrity": "sha1-Cr9PHKpbyx96nYrMbepPqqBLrJs=",
+-            "dev": true
++            "integrity": "sha1-Cr9PHKpbyx96nYrMbepPqqBLrJs="
+         },
+         "events": {
+             "version": "1.1.1",
+@@ -2963,8 +2985,7 @@
+         "fast-levenshtein": {
+             "version": "2.0.6",
+             "resolved": "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz",
+-            "integrity": "sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc=",
+-            "dev": true
++            "integrity": "sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc="
+         },
+         "figures": {
+             "version": "2.0.0",
+@@ -3163,8 +3184,8 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "delegates": "^1.0.0",
+-                        "readable-stream": "^2.0.6"
++                        "delegates": "1.0.0",
++                        "readable-stream": "2.3.6"
+                     }
+                 },
+                 "balanced-match": {
+@@ -3177,7 +3198,7 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "balanced-match": "^1.0.0",
++                        "balanced-match": "1.0.0",
+                         "concat-map": "0.0.1"
+                     }
+                 },
+@@ -3241,7 +3262,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "minipass": "^2.2.1"
++                        "minipass": "2.2.4"
+                     }
+                 },
+                 "fs.realpath": {
+@@ -3256,14 +3277,14 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "aproba": "^1.0.3",
+-                        "console-control-strings": "^1.0.0",
+-                        "has-unicode": "^2.0.0",
+-                        "object-assign": "^4.1.0",
+-                        "signal-exit": "^3.0.0",
+-                        "string-width": "^1.0.1",
+-                        "strip-ansi": "^3.0.1",
+-                        "wide-align": "^1.1.0"
++                        "aproba": "1.2.0",
++                        "console-control-strings": "1.1.0",
++                        "has-unicode": "2.0.1",
++                        "object-assign": "4.1.1",
++                        "signal-exit": "3.0.2",
++                        "string-width": "1.0.2",
++                        "strip-ansi": "3.0.1",
++                        "wide-align": "1.1.2"
+                     }
+                 },
+                 "glob": {
+@@ -3272,12 +3293,12 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "fs.realpath": "^1.0.0",
+-                        "inflight": "^1.0.4",
+-                        "inherits": "2",
+-                        "minimatch": "^3.0.4",
+-                        "once": "^1.3.0",
+-                        "path-is-absolute": "^1.0.0"
++                        "fs.realpath": "1.0.0",
++                        "inflight": "1.0.6",
++                        "inherits": "2.0.3",
++                        "minimatch": "3.0.4",
++                        "once": "1.4.0",
++                        "path-is-absolute": "1.0.1"
+                     }
+                 },
+                 "has-unicode": {
+@@ -3292,7 +3313,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "safer-buffer": "^2.1.0"
++                        "safer-buffer": "2.1.2"
+                     }
+                 },
+                 "ignore-walk": {
+@@ -3301,7 +3322,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "minimatch": "^3.0.4"
++                        "minimatch": "3.0.4"
+                     }
+                 },
+                 "inflight": {
+@@ -3310,8 +3331,8 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "once": "^1.3.0",
+-                        "wrappy": "1"
++                        "once": "1.4.0",
++                        "wrappy": "1.0.2"
+                     }
+                 },
+                 "inherits": {
+@@ -3330,7 +3351,7 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "number-is-nan": "^1.0.0"
++                        "number-is-nan": "1.0.1"
+                     }
+                 },
+                 "isarray": {
+@@ -3344,7 +3365,7 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "brace-expansion": "^1.1.7"
++                        "brace-expansion": "1.1.11"
+                     }
+                 },
+                 "minimist": {
+@@ -3357,8 +3378,8 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "safe-buffer": "^5.1.1",
+-                        "yallist": "^3.0.0"
++                        "safe-buffer": "5.1.1",
++                        "yallist": "3.0.2"
+                     }
+                 },
+                 "minizlib": {
+@@ -3367,7 +3388,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "minipass": "^2.2.1"
++                        "minipass": "2.2.4"
+                     }
+                 },
+                 "mkdirp": {
+@@ -3390,9 +3411,9 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "debug": "^2.1.2",
+-                        "iconv-lite": "^0.4.4",
+-                        "sax": "^1.2.4"
++                        "debug": "2.6.9",
++                        "iconv-lite": "0.4.21",
++                        "sax": "1.2.4"
+                     }
+                 },
+                 "node-pre-gyp": {
+@@ -3401,16 +3422,16 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "detect-libc": "^1.0.2",
+-                        "mkdirp": "^0.5.1",
+-                        "needle": "^2.2.0",
+-                        "nopt": "^4.0.1",
+-                        "npm-packlist": "^1.1.6",
+-                        "npmlog": "^4.0.2",
+-                        "rc": "^1.1.7",
+-                        "rimraf": "^2.6.1",
+-                        "semver": "^5.3.0",
+-                        "tar": "^4"
++                        "detect-libc": "1.0.3",
++                        "mkdirp": "0.5.1",
++                        "needle": "2.2.0",
++                        "nopt": "4.0.1",
++                        "npm-packlist": "1.1.10",
++                        "npmlog": "4.1.2",
++                        "rc": "1.2.7",
++                        "rimraf": "2.6.2",
++                        "semver": "5.5.0",
++                        "tar": "4.4.1"
+                     }
+                 },
+                 "nopt": {
+@@ -3419,8 +3440,8 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "abbrev": "1",
+-                        "osenv": "^0.1.4"
++                        "abbrev": "1.1.1",
++                        "osenv": "0.1.5"
+                     }
+                 },
+                 "npm-bundled": {
+@@ -3435,8 +3456,8 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "ignore-walk": "^3.0.1",
+-                        "npm-bundled": "^1.0.1"
++                        "ignore-walk": "3.0.1",
++                        "npm-bundled": "1.0.3"
+                     }
+                 },
+                 "npmlog": {
+@@ -3445,10 +3466,10 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "are-we-there-yet": "~1.1.2",
+-                        "console-control-strings": "~1.1.0",
+-                        "gauge": "~2.7.3",
+-                        "set-blocking": "~2.0.0"
++                        "are-we-there-yet": "1.1.4",
++                        "console-control-strings": "1.1.0",
++                        "gauge": "2.7.4",
++                        "set-blocking": "2.0.0"
+                     }
+                 },
+                 "number-is-nan": {
+@@ -3467,7 +3488,7 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "wrappy": "1"
++                        "wrappy": "1.0.2"
+                     }
+                 },
+                 "os-homedir": {
+@@ -3488,8 +3509,8 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "os-homedir": "^1.0.0",
+-                        "os-tmpdir": "^1.0.0"
++                        "os-homedir": "1.0.2",
++                        "os-tmpdir": "1.0.2"
+                     }
+                 },
+                 "path-is-absolute": {
+@@ -3510,10 +3531,10 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "deep-extend": "^0.5.1",
+-                        "ini": "~1.3.0",
+-                        "minimist": "^1.2.0",
+-                        "strip-json-comments": "~2.0.1"
++                        "deep-extend": "0.5.1",
++                        "ini": "1.3.5",
++                        "minimist": "1.2.0",
++                        "strip-json-comments": "2.0.1"
+                     },
+                     "dependencies": {
+                         "minimist": {
+@@ -3530,13 +3551,13 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "core-util-is": "~1.0.0",
+-                        "inherits": "~2.0.3",
+-                        "isarray": "~1.0.0",
+-                        "process-nextick-args": "~2.0.0",
+-                        "safe-buffer": "~5.1.1",
+-                        "string_decoder": "~1.1.1",
+-                        "util-deprecate": "~1.0.1"
++                        "core-util-is": "1.0.2",
++                        "inherits": "2.0.3",
++                        "isarray": "1.0.0",
++                        "process-nextick-args": "2.0.0",
++                        "safe-buffer": "5.1.1",
++                        "string_decoder": "1.1.1",
++                        "util-deprecate": "1.0.2"
+                     }
+                 },
+                 "rimraf": {
+@@ -3545,7 +3566,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "glob": "^7.0.5"
++                        "glob": "7.1.2"
+                     }
+                 },
+                 "safe-buffer": {
+@@ -3588,9 +3609,9 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "code-point-at": "^1.0.0",
+-                        "is-fullwidth-code-point": "^1.0.0",
+-                        "strip-ansi": "^3.0.0"
++                        "code-point-at": "1.1.0",
++                        "is-fullwidth-code-point": "1.0.0",
++                        "strip-ansi": "3.0.1"
+                     }
+                 },
+                 "string_decoder": {
+@@ -3599,7 +3620,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "safe-buffer": "~5.1.0"
++                        "safe-buffer": "5.1.1"
+                     }
+                 },
+                 "strip-ansi": {
+@@ -3607,7 +3628,7 @@
+                     "bundled": true,
+                     "dev": true,
+                     "requires": {
+-                        "ansi-regex": "^2.0.0"
++                        "ansi-regex": "2.1.1"
+                     }
+                 },
+                 "strip-json-comments": {
+@@ -3622,13 +3643,13 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "chownr": "^1.0.1",
+-                        "fs-minipass": "^1.2.5",
+-                        "minipass": "^2.2.4",
+-                        "minizlib": "^1.1.0",
+-                        "mkdirp": "^0.5.0",
+-                        "safe-buffer": "^5.1.1",
+-                        "yallist": "^3.0.2"
++                        "chownr": "1.0.1",
++                        "fs-minipass": "1.2.5",
++                        "minipass": "2.2.4",
++                        "minizlib": "1.1.0",
++                        "mkdirp": "0.5.1",
++                        "safe-buffer": "5.1.1",
++                        "yallist": "3.0.2"
+                     }
+                 },
+                 "util-deprecate": {
+@@ -3643,7 +3664,7 @@
+                     "dev": true,
+                     "optional": true,
+                     "requires": {
+-                        "string-width": "^1.0.2"
++                        "string-width": "1.0.2"
+                     }
+                 },
+                 "wrappy": {
+@@ -4841,7 +4862,6 @@
+             "version": "0.3.0",
+             "resolved": "https://registry.npmjs.org/levn/-/levn-0.3.0.tgz",
+             "integrity": "sha1-OwmSTt+fCDwEkP3UwLxEIeBHZO4=",
+-            "dev": true,
+             "requires": {
+                 "prelude-ls": "1.1.2",
+                 "type-check": "0.3.2"
+@@ -7955,7 +7975,6 @@
+             "version": "0.8.2",
+             "resolved": "https://registry.npmjs.org/optionator/-/optionator-0.8.2.tgz",
+             "integrity": "sha1-NkxeQJ0/TWMB1sC0wFu6UBgK62Q=",
+-            "dev": true,
+             "requires": {
+                 "deep-is": "0.1.3",
+                 "fast-levenshtein": "2.0.6",
+@@ -8331,8 +8350,7 @@
+         "prelude-ls": {
+             "version": "1.1.2",
+             "resolved": "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.1.2.tgz",
+-            "integrity": "sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ=",
+-            "dev": true
++            "integrity": "sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ="
+         },
+         "prepend-http": {
+             "version": "2.0.0",
+@@ -9605,7 +9623,6 @@
+             "version": "0.3.2",
+             "resolved": "https://registry.npmjs.org/type-check/-/type-check-0.3.2.tgz",
+             "integrity": "sha1-WITKtRLPHTVeP7eE8wgEsrUg23I=",
+-            "dev": true,
+             "requires": {
+                 "prelude-ls": "1.1.2"
+             }
+@@ -10189,8 +10206,7 @@
+         "wordwrap": {
+             "version": "1.0.0",
+             "resolved": "https://registry.npmjs.org/wordwrap/-/wordwrap-1.0.0.tgz",
+-            "integrity": "sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus=",
+-            "dev": true
++            "integrity": "sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus="
+         },
+         "worker-farm": {
+             "version": "1.6.0",
+Index: package.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- package.json	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ package.json	(date 1542903412080)
+@@ -21,6 +21,7 @@
+     "author": "",
+     "license": "ISC",
+     "dependencies": {
++        "escodegen": "^1.11.0",
+         "esprima": "^4.0.0",
+         "jquery": "^3.3.1"
+     },
+Index: src/js/app.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/js/app.js	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ src/js/app.js	(date 1542999854734)
+@@ -1,10 +1,40 @@
+ import $ from 'jquery';
+-import {parseCode} from './code-analyzer';
++import {start_parse, parseCode} from './code-analyzer';
+ 
+ $(document).ready(function () {
+     $('#codeSubmissionButton').click(() => {
+         let codeToParse = $('#codePlaceholder').val();
+         let parsedCode = parseCode(codeToParse);
+         $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
++        let parse_arr = start_parse(parsedCode);
++        create_table(parse_arr);
++        // find line, type, name, condition, value
++        //let start = parsedCode.body[0];
++        //$('start').val();
++        let tests = JSON.stringify(parse_arr);
+     });
+ });
++
++function create_table(parse_arr){
++    clean_table();
++    let new_table = document.getElementById('info_table');
++    for(let i = 0; i < parse_arr.length; i++) {
++        let row = new_table.insertRow();
++        let line = row.insertCell(0);
++        let type = row.insertCell(1);
++        let name = row.insertCell(2);
++        let condition = row.insertCell(3);
++        let value = row.insertCell(4);
++        line.innerHTML = parse_arr[i].Line;
++        type.innerHTML = parse_arr[i].Type;
++        name.innerHTML = parse_arr[i].Name;
++        condition.innerHTML = parse_arr[i].Condition.replace(/</g, '&lt;').replace(/>/g, '&gt;');
++        value.innerHTML = parse_arr[i].Value;
++    }
++}
++
++function clean_table(){  //todo: clean table
++    let new_table = document.getElementById('info_table');
++    new_table.innerHTML = '<thead>'+ '<tr>' + '<th>Line</th>' + '<th>Type</th>'
++    + '<th>Name</th>' + '<th>Condition</th>' + '<th>Value</th>' + '</tr>' + '</thead>';
++}
+\ No newline at end of file
+Index: src/js/code-analyzer.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/js/code-analyzer.js	(revision 793c74bdc19e60e00a58dbdc1e8d419b381f9370)
++++ src/js/code-analyzer.js	(date 1543009237399)
+@@ -1,7 +1,299 @@
+ import * as esprima from 'esprima';
++import * as escodegen from 'escodegen';
+ 
++let parsing_arr = [];
+ const parseCode = (codeToParse) => {
+-    return esprima.parseScript(codeToParse);
++    return esprima.parseScript(codeToParse, {loc: true});
++};
++
++// main function for start to pare the code
++const start_parse = (parsed) => {
++    parsing_arr = [];
++    let body = parsed.body;
++    for(let i=0; i<body.length; i++){
++        let type = body[i].type;
++        nav_map[type](body[i]);
++    }
++    return parsing_arr;
+ };
+ 
+ export {parseCode};
++export {start_parse};
++
++let nav_map = {
++    'IfStatement':case_if,
++    'DoWhileStatement': case_dowhile,
++    'ExpressionStatement': case_expState,
++    'ForStatement': case_for,
++    'FunctionDeclaration': case_funcDeclare,
++    'Identifier':case_id,
++    'ReturnStatement':case_return,
++    'VariableDeclaration':case_varDeclare,
++    'WhileStatement':case_while,
++    'BinaryExpression': case_binary,
++    'UnaryExpression': case_unary,
++    'AssignmentExpression': case_assign,
++    'UpdateExpression': case_update,
++    'MemberExpression':case_memberExp,
++    'Literal':case_literal,
++    'CallExpression': case_callExp,
++    'BlockStatement':case_block
++};
++
++//parse the secondary parts in the code
++function body_parser(body){ //todo: check if null
++    for(let i=0; i<body.length; i++){
++        let type = body[i].type;
++        nav_map[type](body[i]);
++    }
++}
++
++// Handle cases
++function case_for(info){
++    let exp = escodegen.generate(info.init).replace('let ','') + ';' + escodegen.generate(info.test) + ';' +escodegen.generate(info.update);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'for statement',
++        'Name':'',
++        'Condition':exp,
++        'Value':''
++    });
++    body_parser(info.body.body); //todo: check if only 1 expression
++}
++
++function case_if(info){
++    let test = escodegen.generate(info.test);
++    let type = 'if statement';
++    helper_if(info, test, type);
++}
++
++function helper_if(info, test, type){
++    parsing_arr.push({
++        'Line':info.loc.start.line, 'Type':type, 'Name':'', 'Condition':test, 'Value':''});
++    if(info.consequent.body){
++        body_parser(info.consequent.body);
++    }
++    else{
++        nav_map[info.consequent.type](info.consequent);
++    }
++    if(info.alternate !== null){
++        if(info.alternate.type === 'IfStatement'){
++            case_elif(info.alternate);
++        }
++        else{
++            case_else(info.alternate);
++        }
++    }
++}
++function case_else(info) {
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'else statement',
++        'Name':'',
++        'Condition':'',
++        'Value':''
++    });
++    nav_map[info.type](info);
++}
++
++function case_elif(info){
++    let test = escodegen.generate(info.test);
++    let type = 'else if statement';
++    helper_if(info, test, type);
++}
++
++function case_while(info){
++    let test = escodegen.generate(info.test);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'while statement',
++        'Name':'',
++        'Condition':test,
++        'Value':''
++    });
++    if(info.body.body){
++        body_parser(info.body.body);
++    }
++    else{
++        nav_map[info.body.type](info.body);
++    }
++}
++
++function case_dowhile(info){
++    let test = escodegen.generate(info.test);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'do while statement',
++        'Name':'',
++        'Condition':test,
++        'Value':''
++    });
++    if(info.body.body){
++        body_parser(info.body.body);
++    }
++    else{
++        nav_map[info.body.type](info.body);
++    }
++}
++
++function case_return(info){
++    let exp = escodegen.generate(info.argument);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'return statement',
++        'Name':'',
++        'Condition':'',
++        'Value':exp
++    });
++}
++
++function case_funcDeclare(info){
++    let name = info.id.name;
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'function declaration',
++        'Name':name,
++        'Condition':'',
++        'Value':''});
++    if(info.params.length !== 0){
++        body_parser(info.params);
++    }
++    if(info.body.body){
++        body_parser(info.body.body);
++    }
++}
++
++function case_expState(info) {
++    let func = nav_map[info.expression.type];
++    func.call(undefined, info);
++}
++
++function case_assign(info){
++    let name = escodegen.generate(info.expression.left);
++    let value;
++    if(info.expression.operator ==='+=') {
++        value = name + '+' + escodegen.generate(info.expression.right);
++    }
++    else if(info.expression.operator ==='-='){
++        value = name + '-' + escodegen.generate(info.expression.right);
++    }
++    else{
++        value = escodegen.generate(info.expression.right);
++    }
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'assignment expression',
++        'Name':name,
++        'Condition':'',
++        'Value':value
++    });
++}
++function case_update(info){
++    let name = escodegen.generate(info.expression.argument);
++    let value;
++    if(info.expression.operator ==='++'){
++        value = name + '+ 1';
++    }
++    else{
++        value = name + '- 1';
++    }
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'update expression',
++        'Name':name,
++        'Condition':'',
++        'Value':value
++    });
++}
++function case_unary(info){
++    let name = info.expression.argument.name;
++    let value = info.expression.operator + name;
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'unary expression',
++        'Name':name,
++        'Condition':'',
++        'Value':value
++    });
++}
++function case_binary(info){
++    let value = escodegen.generate(info.expression);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'binary expression',
++        'Name':'',
++        'Condition':'',
++        'Value':value
++    });
++}
++function case_id(info){
++    let name = info.name;
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'identifier',
++        'Name':name,
++        'Condition':'',
++        'Value':''
++    });
++}
++
++function case_varDeclare(info){
++    for(let i=0; i<info.declarations.length; i++){
++        let name = info.declarations[i].id.name;  //todo: if the left is member exp?? or something else
++        let value;
++        if(info.declarations[i].init == null){
++            value = '';
++        }
++        else{
++            value = escodegen.generate(info.declarations[i].init);
++        }
++        parsing_arr.push({
++            'Line':info.declarations[i].loc.start.line,
++            'Type':'variable declaration',
++            'Name':name,
++            'Condition':'',
++            'Value':value
++        });
++    }
++}
++
++function case_memberExp(info){
++    let name = escodegen.generate(info.expression);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'member expression',
++        'Name':name,
++        'Condition':'',
++        'Value':''
++    });
++}
++
++function case_literal(info){
++    let value = info.expression.raw;
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'literal',
++        'Name':'',
++        'Condition':'',
++        'Value': value
++    });
++}
++
++function case_block(info){
++    let block_body = info.body;
++    for(let i=0; i<block_body.length; i++){
++        let type = block_body[i].type;
++        nav_map[type](block_body[i]);
++    }
++}
++
++function case_callExp(info){
++    let name = escodegen.generate(info.expression);
++    parsing_arr.push({
++        'Line':info.loc.start.line,
++        'Type':'call expression',
++        'Name': name,
++        'Condition':'',
++        'Value': ''
++    });
++}
+\ No newline at end of file

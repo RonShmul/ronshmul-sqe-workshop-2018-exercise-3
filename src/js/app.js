@@ -10,8 +10,6 @@ $(document).ready(function () {
         create_table(parse_arr);
         // find line, type, name, condition, value
         //let start = parsedCode.body[0];
-        //$('start').val();
-        //let tests = JSON.stringify(parse_arr);
     });
 });
 

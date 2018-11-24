@@ -158,9 +158,8 @@ function case_funcDeclare(info){
     if(info.params.length !== 0){
         body_parser(info.params);
     }
-    if(info.body.body){
-        body_parser(info.body.body);
-    }
+    body_parser(info.body.body);
+
 }
 
 function case_expState(info) {
