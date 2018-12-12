@@ -6,14 +6,23 @@ $(document).ready(function () {
         let codeToParse = $('#codePlaceholder').val();
         let parsedCode = parseCode(codeToParse);
         $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
-        let parse_arr = start_parse(parsedCode);
-        create_table(parse_arr);
-        // find line, type, name, condition, value
-        //let start = parsedCode.body[0];
+        let args = $('#arguments').val();
+        let arr_func = start_parse(parsedCode, args);
+        //create_table(parse_arr);
+        createNewFunc(arr_func);
     });
 });
 
-function create_table(parse_arr){
+function createNewFunc(func){
+    $('#newFunc').empty();
+    let clean = document.getElementById('newFunc');
+    clean.innerHTML='';
+    for (let i=0;i<func.length;i++){
+        $('#newFunc').append(func[i].replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+    }
+}
+
+/*function create_table(parse_arr){
     clean_table();
     let new_table = document.getElementById('info_table');
     for(let i = 0; i < parse_arr.length; i++) {
@@ -31,8 +40,8 @@ function create_table(parse_arr){
     }
 }
 
-function clean_table(){  //todo: clean table
+function clean_table(){
     let new_table = document.getElementById('info_table');
     new_table.innerHTML = '<thead>'+ '<tr>' + '<th>Line</th>' + '<th>Type</th>'
     + '<th>Name</th>' + '<th>Condition</th>' + '<th>Value</th>' + '</tr>' + '</thead>';
-}
+}*/

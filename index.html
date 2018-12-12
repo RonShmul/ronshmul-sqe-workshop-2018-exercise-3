@@ -19,6 +19,12 @@
                 width: 80%;
                 height: 95%;
             }
+            .headline {
+                text-align: center;
+                font-size: 22px;
+                font-weight: bold;
+                color: #440044;
+            }
             #info_table th {
                 padding-top: 5px;
                 padding-bottom: 5px;
@@ -30,6 +36,16 @@
                 padding-bottom: 5px;
                 text-align: center;
                 font-size: 18px;
+            }
+            #sub {
+                padding-top: 5px;
+                padding-bottom: 5px;
+                text-align: center;
+                font-size: 18px;
+            }
+            #arguments {
+                width: 18%;
+                height: 13%;
             }
         </style>
     </head>
@@ -62,6 +78,17 @@
             <tr>
                 <td>
                     <div>
+                        <label>Insert arguments for the function:</label>
+                        <textarea id="arguments"></textarea>
+                        <br>
+                    </div>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
                         <button id="codeSubmissionButton">Parse code</button>
                     </div>
                 </td>
@@ -69,7 +96,23 @@
                 </td>
             </tr>
         </table>
-
+        <br>
+        <table>
+            <tr>
+                <td>
+                    <div>
+                        <label class="headline">New function after symbolic substitution:</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="sub" class="textAreaWrapper">
+                        <textarea id="newFunc" title="Parse code"></textarea>
+                    </div>
+                </td>
+            </tr>
+        </table>
         <table id="info_table">
             <thead>
                 <tr>
