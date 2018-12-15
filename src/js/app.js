@@ -17,8 +17,19 @@ function createNewFunc(func){
     $('#newFunc').empty();
     let clean = document.getElementById('newFunc');
     clean.innerHTML='';
+    let func_to_show='';
     for (let i=0;i<func.length;i++){
-        $('#newFunc').append(func[i].replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+        if(func[i] ==='GREEN'){
+            func_to_show = func_to_show + '<p style="color: green">' + func[i+1].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g,'<br>') + '</p>';
+            i++;
+        }
+        else if(func[i] === 'RED'){
+            func_to_show = func_to_show + '<p style="color: red">' + func[i+1].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g,'<br>') + '</p>';
+            i++;
+        }
+        else
+            func_to_show = func_to_show + func[i].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g,'<br>');
+        clean.innerHTML = func_to_show;
     }
 }
 
