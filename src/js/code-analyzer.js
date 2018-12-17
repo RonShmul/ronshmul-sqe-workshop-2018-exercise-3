@@ -72,9 +72,9 @@ function insert_values(args){
     let parts = args.split(',');
     for(let i=0; i<parts.length;i++){
         let value=parts[i];
-        if(value.charAt(0)==='\'' && value.charAt(value.length-1)=== '\'')
-            inputs.push(value.slice(1,-1));
-        else if(value.startsWith('['))
+        //if(value.charAt(0)==='\'' && value.charAt(value.length-1)=== '\'')
+        //    inputs.push(value.slice(1,-1));
+        if(value.startsWith('['))
             i = helper_arr(parts, i);
         else
             inputs.push(value);

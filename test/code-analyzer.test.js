@@ -1,7 +1,8 @@
 import assert from 'assert';
 import {parseCode, start_parse} from '../src/js/code-analyzer';
+//import $ from 'jquery';
 
-describe('The javascript table', () => {
+/*describe('The javascript table', () => {
     it('is parsing an if statement correctly', () => {    //test 1
         let parsed = parseCode('if(a[0]>9){\n' + 'let x=1;\n' + '}');
         assert.equal(
@@ -109,30 +110,25 @@ describe('The javascript table', () => {
             '[{"Line":1,"Type":"function declaration","Name":"binarySearch","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"X","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"V","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"n","Condition":"","Value":""},{"Line":2,"Type":"variable declaration","Name":"low","Condition":"","Value":""},{"Line":2,"Type":"variable declaration","Name":"high","Condition":"","Value":""},{"Line":2,"Type":"variable declaration","Name":"mid","Condition":"","Value":""},{"Line":3,"Type":"assignment expression","Name":"low","Condition":"","Value":"0"},{"Line":4,"Type":"assignment expression","Name":"high","Condition":"","Value":"n - 1"},{"Line":5,"Type":"while statement","Name":"","Condition":"low <= high","Value":""},{"Line":6,"Type":"assignment expression","Name":"mid","Condition":"","Value":"(low + high) / 2"},{"Line":7,"Type":"if statement","Name":"","Condition":"X < V[mid]","Value":""},{"Line":8,"Type":"assignment expression","Name":"high","Condition":"","Value":"mid - 1"},{"Line":9,"Type":"else if statement","Name":"","Condition":"X > V[mid]","Value":""},{"Line":10,"Type":"assignment expression","Name":"low","Condition":"","Value":"mid + 1"},{"Line":12,"Type":"else statement","Name":"","Condition":"","Value":""},{"Line":12,"Type":"return statement","Name":"","Condition":"","Value":"mid"},{"Line":14,"Type":"return statement","Name":"","Condition":"","Value":"-1"}]'
         );
     });
+}); */
+
+describe('The new function', () => {
+    it('is only a declaration and return', () => {
+        let parsed = parseCode('function foo(){\n' + 'let a=5;\n' + 'let b=a+1;\n' + 'return a;\n' + '}');
+        let args='', check='';
+        let func = start_parse(parsed, args);
+        for(let i=0; i<func.length; i++){
+            if(func[i]!== 'GREEN' && func[i]!== 'RED')
+                check+=func[i];
+        }
+        assert.equal(check,'function foo(){\n' + 'return 5;\n' + '}\n');});
+    it('is with global and input', () => {
+        let parsed = parseCode('let a=\'ron\';\n' + 'function foo(b){\n' + 'if(a==b){\n' + 'return true;\n' + '}\n' + '}');
+        let args='\'ron\'',check='';
+        let func = start_parse(parsed, args);
+        for(let i=0; i<func.length; i++){
+            if(func[i]!== 'GREEN' && func[i]!== 'RED')
+                check+=func[i];
+        }
+        assert.equal(check,'function foo(b){\n' + 'if(a==b){\n' + 'return true;\n' + '}\n' + '}\n');});
 });
-
-/*it('is parsing a functioin example correctly', () => {    //test 11
-       let parsed = parseCode('function toCelsius(fahrenheit) {\n' +
-           '    return (5/9) * (fahrenheit-32);\n' +
-           '}\n' +
-           'document.getElementById("demo").innerHTML = toCelsius;');
-       assert.equal(
-           JSON.stringify(start_parse(parsed)),
-           '[{"Line":1,"Type":"function declaration","Name":"toCelsius","Condition":"","Value":""},{"Line":1,"Type":"identifier","Name":"fahrenheit","Condition":"","Value":""},{"Line":2,"Type":"return statement","Name":"","Condition":"","Value":"5 / 9 * (fahrenheit - 32)"},{"Line":4,"Type":"assignment expression","Name":"document.getElementById(\'demo\').innerHTML","Condition":"","Value":"toCelsius"}]'
-       );
-   }); */
-
-/* it('is parsing an empty function correctly', () => {
- assert.equal(
-     JSON.stringify(parseCode('')),
-     '{"type":"Program","body":[],"sourceType":"script"}'
- );
-});
-
-it('is parsing a simple variable declaration correctly', () => {
- assert.equal(
-     JSON.stringify(parseCode('let a = 1;')),
-     '{"type":"Program","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"a"},"init":{"type":"Literal","value":1,"raw":"1"}}],"kind":"let"}],"sourceType":"script"}'
- );
-});  */
-
