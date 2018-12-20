@@ -19,6 +19,7 @@ const start_parse = (parsed, args) => {
     parsing_arr = [];
     sub_func = [];
     inputs = [];
+    currColor = 'green';
     globals = new Map();
     locals = new Map();
     func_args = new Map();
@@ -49,9 +50,10 @@ let opertors_map = {
 };
 let nav_map = {
     'IfStatement':case_if,
-    'DoWhileStatement': case_dowhile,
+    'LogicalExpression': case_logical,
+    //'DoWhileStatement': case_dowhile,
     'ExpressionStatement': case_expState,
-    'ForStatement': case_for,
+    //'ForStatement': case_for,
     'FunctionDeclaration': case_funcDeclare,
     'Identifier':case_id,
     'ReturnStatement':case_return,
@@ -60,15 +62,15 @@ let nav_map = {
     'BinaryExpression': case_binary,
     'UnaryExpression': case_unary,
     'AssignmentExpression': case_assign,
-    'UpdateExpression': case_update,
+    //'UpdateExpression': case_update,
     'MemberExpression':case_memberExp,
     'Literal':case_literal,
-    'CallExpression': case_callExp,
+    //'CallExpression': case_callExp,
     'BlockStatement':case_block
 };
 //inserts values of the function to an array
 function insert_values(args){
-    args.replace(/\s/g, '');
+    args = args.replace(' ', '');
     let parts = args.split(',');
     for(let i=0; i<parts.length;i++){
         let value=parts[i];
@@ -121,15 +123,19 @@ function calc(side){
 // helping functions
 function help_calc(side){
     let value;
-    if(locals.has(side.name))
-        value = eval(locals.get(side.name));
     if(globals.has(side.name))
-        value = eval(globals.get(side.name));
+        value = checkLiteralIn(side, globals);
     if(func_args.has(side.name))
-        value = eval(func_args.get(side.name));
+        value = checkLiteralIn(side, func_args);
     if(side.type === 'Literal')
         value = checkForLiteral(side);
     return value;
+}
+function checkLiteralIn(side, a){
+    if(a.get(side.name)==='true' ||a.get(side.name)==='false')
+        return a.get(side.name);
+    else
+        return eval(a.get(side.name));
 }
 function checkForLiteral(side){
     if(side.raw ==='true' || side.raw === 'false')
@@ -141,12 +147,12 @@ function findMem(side){
     let name = side.object.name;
     let index = side.property.raw;
     let value;
-    if(locals.has(name))
-        value = (locals.get(name))[index];
-    if(globals.has(name))
-        value = (globals.get(name))[index];
-    if(func_args.has(name))
-        value = (func_args.get(name))[index];
+    // if(locals.has(name))
+    //     value = (locals.get(name))[index];
+    // if(globals.has(name))
+    //     value = (globals.get(name))[index];
+    //if(func_args.has(name))
+    value = (func_args.get(name))[index];
     return value;
 }
 // cases in if statements
@@ -228,20 +234,18 @@ function colors(color){
     }
 }
 // Handle cases
-function case_for(info){
+/*function case_for(info){
     let exp = escodegen.generate(info.init).replace('let ','') + ';' + escodegen.generate(info.test) + ';' +escodegen.generate(info.update);
     parsing_arr.push({
         'Line':info.loc.start.line, 'Type':'for statement',
         'Name':'', 'Condition':exp, 'Value':''
     });
     body_parser(info.body.body);
-}
+}*/
 function case_if(info){
-    let test;
-    if(isFunc)
-        test = nav_map[info.test.type](info.test);
-    else
-        test = escodegen.generate(info.test);
+    let test= nav_map[info.test.type](info.test);
+    //if(isFunc)
+    //else  test = escodegen.generate(info.test);
     let type = 'if statement';
     let color = check_color(test);
     colors(color);
@@ -276,10 +280,10 @@ function case_else(info, colored) {
 }
 function case_elif(info, colored){
     let test;
-    if(isFunc)
-        test = nav_map[info.test.type](info.test);
-    else
-        test = escodegen.generate(info.test);
+    //if(isFunc)
+    test = nav_map[info.test.type](info.test);
+    //else
+    // test = escodegen.generate(info.test);
     let type = 'else if statement';
     let color = check_color(test);
     colors(color);
@@ -290,21 +294,21 @@ function case_elif(info, colored){
 }
 function case_while(info){
     let test;
-    if(isFunc)
-        test = nav_map[info.test.type](info.test);
-    else
-        test = escodegen.generate(info.test);
+    //if(isFunc)
+    test = nav_map[info.test.type](info.test);
+    // else
+    //     test = escodegen.generate(info.test);
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'while statement', 'Name':'', 'Condition':test, 'Value':''});
     sub_func.push('while('+test+')');
-    if(info.body.body){
-        sub_func.push('{\n');
-        body_parser(info.body.body);
-        sub_func.push('}\n');
-    }
-    else
-        nav_map[info.body.type](info.body);
+    //if(info.body.body){
+    sub_func.push('{\n');
+    body_parser(info.body.body);
+    sub_func.push('}\n');
+    //}
+    // else
+    //     nav_map[info.body.type](info.body);
 }
-function case_dowhile(info){
+/*function case_dowhile(info){
     let test;
     if(isFunc)
         test = nav_map[info.test.type](info.test);
@@ -315,13 +319,13 @@ function case_dowhile(info){
         body_parser(info.body.body);
     else
         nav_map[info.body.type](info.body);
-}
+}*/
 function case_return(info){
     let exp;
-    if(isFunc)
-        exp = nav_map[info.argument.type](info.argument);
-    else
-        exp = escodegen.generate(info.argument);
+    //if(isFunc)
+    exp = nav_map[info.argument.type](info.argument);
+    // else
+    //     exp = escodegen.generate(info.argument);
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'return statement', 'Name':'', 'Condition':'', 'Value':exp});
     sub_func.push('return '+exp+';\n');
 }
@@ -375,7 +379,7 @@ function assign_args(name, value){
     if(currColor ==='green')
         func_args.set(name, value);
 }
-function case_update(info){
+/*function case_update(info){
     let name = escodegen.generate(info.argument);
     let value;
     if(info.operator ==='++')
@@ -383,11 +387,17 @@ function case_update(info){
     else
         value = name + '- 1';
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'update expression', 'Name':name, 'Condition':'', 'Value':value});
-}
+}*/
 function case_unary(info){
     let name = info.argument.name;
-    let value = info.operator + name;
+    let value;
+    if(locals.has(name)){
+        value = info.operator +locals.get(name);
+    }
+    else
+        value = info.operator + name;
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'unary expression', 'Name':name, 'Condition':'', 'Value':value});
+    return value;
 }
 function case_binary(info){
     let value, right, left;
@@ -398,6 +408,12 @@ function case_binary(info){
     else
         value =left+ info.operator +right;
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'binary expression', 'Name':'', 'Condition':'', 'Value':value});
+    return value;
+}
+function case_logical(info){
+    let left = nav_map[info.left.type](info.left);
+    let right = nav_map[info.right.type](info.right);
+    let value = left+ info.operator +right;
     return value;
 }
 function case_id(info){
@@ -437,15 +453,14 @@ function helper_varDeclare(declare, name){
 function case_memberExp(info){
     let name = info.object.name;
     let index = info.property.raw;
-    let act = info.property.name;
+    //let act = info.property.name;
     parsing_arr.push({'Line':info.loc.start.line,'Type':'member expression','Name':name+'['+index+']','Condition':'', 'Value':''});
-    if(index !== undefined)
-        return indexMem(name, index);
-    if(act === 'length')
-        return actMem(name, act);
+    //if(index !== undefined)
+    let fullName = name+'['+index+']';
+    return fullName;
 }
 
-function indexMem(name, index){
+/*function indexMem(name, index){
     let fullName = name+'['+index+']';
     if(func_args.has(name))
         return fullName;
@@ -453,16 +468,16 @@ function indexMem(name, index){
         return fullName;
     if(locals.has(name))
         return (locals.get(name))[index];
-}
+}*/
 
-function actMem(name, act){
+/*function actMem(name, act){
     if(func_args.has(name))
         return name+'.' + act;
     if(globals.has(name))
         return name+'.' + act;
     if(locals.has(name))
         return (locals.get(name)).length; //only if length
-}
+}*/
 
 function case_literal(info){
     let value = info.raw;
@@ -478,7 +493,7 @@ function case_block(info){
     }
 }
 
-function case_callExp(info){
+/*function case_callExp(info){
     let name = escodegen.generate(info);
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'call expression', 'Name': name, 'Condition':'', 'Value': ''});
-}
+}*/
