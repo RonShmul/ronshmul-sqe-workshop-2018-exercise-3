@@ -9,6 +9,7 @@ let isFunc = false;
 let sub_func = [];
 let inputs = [];
 let currColor = '';
+let a=0;
 
 const parseCode = (codeToParse) => {
     return esprima.parseScript(codeToParse, {loc: true});
