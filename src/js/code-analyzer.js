@@ -9,10 +9,9 @@ let isFunc = false;
 let sub_func = [];
 let inputs = [];
 let currColor = '';
-let a=0;
 
 const parseCode = (codeToParse) => {
-    return esprima.parseScript(codeToParse, {loc: true});
+    return esprima.parseScript(codeToParse, {range:true});
 };
 
 // main function for start to pare the code
@@ -234,19 +233,9 @@ function colors(color){
         currColor = 'red';
     }
 }
-// Handle cases
-/*function case_for(info){
-    let exp = escodegen.generate(info.init).replace('let ','') + ';' + escodegen.generate(info.test) + ';' +escodegen.generate(info.update);
-    parsing_arr.push({
-        'Line':info.loc.start.line, 'Type':'for statement',
-        'Name':'', 'Condition':exp, 'Value':''
-    });
-    body_parser(info.body.body);
-}*/
+
 function case_if(info){
     let test= nav_map[info.test.type](info.test);
-    //if(isFunc)
-    //else  test = escodegen.generate(info.test);
     let type = 'if statement';
     let color = check_color(test);
     colors(color);
@@ -280,53 +269,31 @@ function case_else(info, colored) {
     sub_func.push('}\n');
 }
 function case_elif(info, colored){
-    let test;
-    //if(isFunc)
-    test = nav_map[info.test.type](info.test);
-    //else
-    // test = escodegen.generate(info.test);
+    let test = nav_map[info.test.type](info.test);
     let type = 'else if statement';
     let color = check_color(test);
-    colors(color);
-    if(color)
+    if(!colored)
+        colors(color);
+    else
+        colors(false);
+    if(!colored && color)
         colored = true;
     sub_func.push('else if('+test+'){\n');
     helper_if(info, test, type, colored);
 }
 function case_while(info){
     let test;
-    //if(isFunc)
     test = nav_map[info.test.type](info.test);
-    // else
-    //     test = escodegen.generate(info.test);
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'while statement', 'Name':'', 'Condition':test, 'Value':''});
     sub_func.push('while('+test+')');
-    //if(info.body.body){
     sub_func.push('{\n');
     body_parser(info.body.body);
     sub_func.push('}\n');
-    //}
-    // else
-    //     nav_map[info.body.type](info.body);
 }
-/*function case_dowhile(info){
-    let test;
-    if(isFunc)
-        test = nav_map[info.test.type](info.test);
-    else
-        test = escodegen.generate(info.test);
-    parsing_arr.push({'Line':info.loc.start.line, 'Type':'do while statement', 'Name':'', 'Condition':test, 'Value':''});
-    if(info.body.body)
-        body_parser(info.body.body);
-    else
-        nav_map[info.body.type](info.body);
-}*/
+
 function case_return(info){
     let exp;
-    //if(isFunc)
     exp = nav_map[info.argument.type](info.argument);
-    // else
-    //     exp = escodegen.generate(info.argument);
     parsing_arr.push({'Line':info.loc.start.line, 'Type':'return statement', 'Name':'', 'Condition':'', 'Value':exp});
     sub_func.push('return '+exp+';\n');
 }
