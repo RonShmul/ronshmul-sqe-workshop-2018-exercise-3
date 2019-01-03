@@ -347,15 +347,7 @@ function assign_args(name, value){
     if(currColor ==='green')
         func_args.set(name, value);
 }
-/*function case_update(info){
-    let name = escodegen.generate(info.argument);
-    let value;
-    if(info.operator ==='++')
-        value = name + '+ 1';
-    else
-        value = name + '- 1';
-    parsing_arr.push({'Line':info.loc.start.line, 'Type':'update expression', 'Name':name, 'Condition':'', 'Value':value});
-}*/
+
 function case_unary(info){
     let name = info.argument.name;
     let value;
@@ -460,8 +452,3 @@ function case_block(info){
         nav_map[type](block_body[i]);
     }
 }
-
-/*function case_callExp(info){
-    let name = escodegen.generate(info);
-    parsing_arr.push({'Line':info.loc.start.line, 'Type':'call expression', 'Name': name, 'Condition':'', 'Value': ''});
-}*/

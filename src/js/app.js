@@ -1,12 +1,13 @@
 import $ from 'jquery';
-import {parsed, start_cfg} from './cfg';
+import {start_cfg} from './cfg';
+import {parseCode} from './code-analyzer';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         let codeToParse = $('#codePlaceholder').val();
-        let parsedCode = parsed(codeToParse);
+        let parsedCode = parseCode(codeToParse);
         $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
-        let cfg = start_cfg(parsedCode, codeToParse);
+        let cfg = start_cfg(codeToParse);
         $('#newFunc').append(cfg);
     });
 });
