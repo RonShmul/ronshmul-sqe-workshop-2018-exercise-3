@@ -9,20 +9,18 @@ let isFunc = false;
 let sub_func = [];
 let inputs = [];
 let currColor = '';
-
+let conditions_colors = new Map();
+export {conditions_colors};
 const parseCode = (codeToParse) => {
-    return esprima.parseScript(codeToParse, {range:true});
+    return esprima.parseScript(codeToParse, {loc:true});
 };
 
 // main function for start to pare the code
 const start_parse = (parsed, args) => {
-    parsing_arr = [];
-    sub_func = [];
-    inputs = [];
-    currColor = 'green';
-    globals = new Map();
-    locals = new Map();
-    func_args = new Map();
+    parsing_arr = []; sub_func = [];
+    inputs = []; currColor = 'green';
+    globals = new Map(); locals = new Map(); func_args = new Map();
+    conditions_colors = new Map();
     insert_values(args);
     let body = parsed.body;
     for(let i=0; i<body.length; i++){
@@ -236,8 +234,10 @@ function colors(color){
 
 function case_if(info){
     let test= nav_map[info.test.type](info.test);
+    let old_test = escodegen.generate(info.test);
     let type = 'if statement';
     let color = check_color(test);
+    conditions_colors.set(old_test, color);
     colors(color);
     sub_func.push('if('+test+'){\n');
     helper_if(info, test, type, color);
@@ -272,10 +272,12 @@ function case_elif(info, colored){
     let test = nav_map[info.test.type](info.test);
     let type = 'else if statement';
     let color = check_color(test);
+    let old_test = escodegen.generate(info.test);
     if(!colored)
         colors(color);
     else
         colors(false);
+    conditions_colors.set(old_test, color);
     if(!colored && color)
         colored = true;
     sub_func.push('else if('+test+'){\n');

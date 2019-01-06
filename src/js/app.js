@@ -1,18 +1,21 @@
 import $ from 'jquery';
 import {start_cfg} from './cfg';
-import {parseCode} from './code-analyzer';
+import {parseCode, start_parse} from './code-analyzer';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         let codeToParse = $('#codePlaceholder').val();
         let parsedCode = parseCode(codeToParse);
         $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
+        let args = $('#arguments').val();
+        let arr_func = start_parse(parsedCode, args);
         let cfg = start_cfg(codeToParse);
+        createNewFunc(arr_func);
         $('#newFunc').append(cfg);
     });
 });
 
-/* function createNewFunc(func){
+function createNewFunc(func){
     $('#newFunc').empty();
     let clean = document.getElementById('newFunc');
     clean.innerHTML='';
@@ -30,7 +33,7 @@ $(document).ready(function () {
             func_to_show = func_to_show + func[i].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g,'<br>');
         clean.innerHTML = func_to_show;
     }
-} */
+}
 
 /*function create_table(parse_arr){
     clean_table();
