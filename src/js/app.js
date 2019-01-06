@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import {start_cfg} from './cfg';
 import {parseCode, start_parse} from './code-analyzer';
+import * as viz from 'viz.js';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
@@ -10,8 +11,13 @@ $(document).ready(function () {
         let args = $('#arguments').val();
         let arr_func = start_parse(parsedCode, args);
         let cfg = start_cfg(codeToParse);
+        let final = '';
+        for(let i=0;i<cfg.length;i++){
+            final= final+cfg[i]+'\n';
+        }
+        let graph =  viz('digraph{'+final+'}');
         createNewFunc(arr_func);
-        $('#newFunc').append(cfg);
+        $('#newFunc').append(graph);
     });
 });
 

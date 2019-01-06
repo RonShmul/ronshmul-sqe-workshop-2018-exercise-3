@@ -1,11 +1,10 @@
 import * as esgraph from 'esgraph';
-import * as viz from 'viz.js';
+//import * as viz from 'viz.js';
 import * as esprima from 'esprima';
 
 import {conditions_colors} from './code-analyzer';
 
 let cfg = [];
-let final = '';
 let index = 1; // index 0 is entry
 let exit = false;
 let n_exit = '';
@@ -17,7 +16,7 @@ let types_map = {
     'exit': case_exit
 };
 
-export {start_cfg, final};
+export {start_cfg};
 
 let start_cfg = (codeToParse) => {
     let parsedCode = esprima.parse(codeToParse, { range: true });
@@ -39,10 +38,7 @@ function build_graph(){
     clean_cfg();
     color_path();
     numbering();
-    for(let i=0;i<cfg.length;i++){
-        final= final+cfg[i]+'\n';
-    }
-    return viz('digraph{'+final+'}');
+    return cfg;
 }
 
 //cleans exceptions, entry and end

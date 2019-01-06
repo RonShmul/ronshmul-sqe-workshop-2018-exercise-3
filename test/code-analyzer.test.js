@@ -1,6 +1,6 @@
 import assert from 'assert';
 import {parseCode, start_parse} from '../src/js/code-analyzer';
-//import {start_cfg, final} from '../src/js/cfg';
+import {start_cfg} from '../src/js/cfg';
 //1+2
 describe('The new function', () => {
     it('is only a declaration and return', () => {
@@ -147,16 +147,40 @@ describe('The new function', () => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-// describe('number test:', () => {
-//     it('test graph', () => {
-//         //let parsed = parseCode('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
-//         //let args='1,2,3';
-//         //let func = start_parse(parsed, args);
-//         //let cfg = start_cfg('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
-//         let check = 'n1 [label="(1)\n' + 'a = x + 1;\n' + 'b = a + y;\n' + 'c = 0;", shape="box", style="filled", fillcolor="green"]\n' + 'n4 [label="(2)\n' +
-//             'b > z", shape="diamond", style="filled", fillcolor="green"]\n' + 'n5 [label="(3)\n' + 'c = c + 5", shape="box", style="filled", fillcolor="green"]\n' + 'n6 [label="(4)\n' +
-//             'return c;", shape="box", style="filled", fillcolor="green"]\n' + 'n7 [label="(5)\n' + 'b < z * 2", shape="diamond"]\n' + 'n8 [label="(6)\n' + 'c = c + x + 5", shape="box"]\n' +
-//             'n9 [label="(7)\n' + 'c = c + z + 5", shape="box"]\n' + 'n1 -> n4 []\n' + 'n4 -> n5 [label="true"]\n' + 'n4 -> n7 [label="false"]\n' +
-//             'n5 -> n6 []\n' + 'n7 -> n8 [label="true"]\n' + 'n7 -> n9 [label="false"]\n' + 'n8 -> n6 []\n' + 'n9 -> n6 []\n' + '\n';
-//         assert.equal(check, final);});
-// });
+describe('number test:', () => {
+    it('test graph', () => {
+        let parsed = parseCode('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
+        let args='1,2,3';
+        let func = start_parse(parsed, args);
+        let cfg = start_cfg('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
+        let final = 'n1 [label="(1)\n' + 'a = x + 1;\n' + 'b = a + y;\n' + 'c = 0;", shape="box", style="filled", fillcolor="green"]\n' + 'n4 [label="(2)\n' +
+            'b > z", shape="diamond", style="filled", fillcolor="green"]\n' + 'n5 [label="(3)\n' + 'c = c + 5", shape="box", style="filled", fillcolor="green"]\n' + 'n6 [label="(4)\n' +
+            'return c;", shape="box", style="filled", fillcolor="green"]\n' + 'n7 [label="(5)\n' + 'b < z * 2", shape="diamond"]\n' + 'n8 [label="(6)\n' + 'c = c + x + 5", shape="box"]\n' +
+            'n9 [label="(7)\n' + 'c = c + z + 5", shape="box"]\n' + 'n1 -> n4 []\n' + 'n4 -> n5 [label="true"]\n' + 'n4 -> n7 [label="false"]\n' +
+            'n5 -> n6 []\n' + 'n7 -> n8 [label="true"]\n' + 'n7 -> n9 [label="false"]\n' + 'n8 -> n6 []\n' + 'n9 -> n6 []\n' + '\n';
+
+        let check = 'n1 [label="(1)\n' + 'a = x + 1;\n' + 'b = a + y;\n' + 'c = 0;", shape="box", style="filled", fillcolor="green"]\n' + 'n4 [label="(2)\n' +
+            'b > z", shape="diamond", style="filled", fillcolor="green"]\n' + 'n5 [label="(3)\n' + 'c = c + 5", shape="box", style="filled", fillcolor="green"]\n' + 'n6 [label="(4)\n' +
+            'return c;", shape="box", style="filled", fillcolor="green"]\n' + 'n7 [label="(5)\n' + 'b < z * 2", shape="diamond"]\n' + 'n8 [label="(6)\n' + 'c = c + x + 5", shape="box"]\n' +
+            'n9 [label="(7)\n' + 'c = c + z + 5", shape="box"]\n' + 'n1 -> n4 []\n' + 'n4 -> n5 [label="true"]\n' + 'n4 -> n7 [label="false"]\n' +
+            'n5 -> n6 []\n' + 'n7 -> n8 [label="true"]\n' + 'n7 -> n9 [label="false"]\n' + 'n8 -> n6 []\n' + 'n9 -> n6 []\n' + '\n';
+        assert.equal(final, check);});
+});
+
+describe('number test:', () => {
+    it('test graphs', () => {
+        let parsed = parseCode('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
+        let args='1,2,3';
+        let func = start_parse(parsed, args);
+        let cfg = start_cfg('function foo(x, y, z){\n' + 'let a = x + 1;\n' + 'let b = a + y;\n' + 'let c = 0;\n' + '    \n' + '    if (b < z) {\n' + '        c = c + 5;\n' + '    } else if (b < z * 2) {\n' + '        c = c + x + 5;\n' + '    } else {\n' + '        c = c + z + 5;\n' + '    }\n' + '    \n' + '    return c;\n' + '}\n');
+        let final = 'n1 [label="(1)\n' + 'a = x + 1;\n' + 'b = a + y;\n' +
+            'c = 0;", shape="box", style="filled", fillcolor="green"]\n' + 'n4 [label="(2)\n' + 'b > z", shape="diamond", style="filled", fillcolor="green"]\n' + 'n5 [label="(3)\n' + 'c = c + 5\n' +
+            'a=a+1", shape="box", style="filled", fillcolor="green"]\n' + 'n7 [label="(4)\n' + 'return c;", shape="box", style="filled", fillcolor="green"]\n' +
+            'n8 [label="(5)\n' + 'c = c + z + 5", shape="box"]\n' + 'n1 -> n4 []\n' + 'n4 -> n5 [label="true"]\n' + 'n4 -> n8 [label="false"]\n' + 'n5 -> n7 []\n' + 'n8 -> n7 []';
+
+        let check = 'n1 [label="(1)\n' + 'a = x + 1;\n' + 'b = a + y;\n' + 'c = 0;", shape="box", style="filled", fillcolor="green"]\n' + 'n4 [label="(2)\n' + 'b > z", shape="diamond", style="filled", fillcolor="green"]\n' + 'n5 [label="(3)\n' + 'c = c + 5\n' +
+            'a=a+1", shape="box", style="filled", fillcolor="green"]\n' +
+            'n7 [label="(4)\n' + 'return c;", shape="box", style="filled", fillcolor="green"]\n' + 'n8 [label="(5)\n' + 'c = c + z + 5", shape="box"]\n' + 'n1 -> n4 []\n' +
+            'n4 -> n5 [label="true"]\n' + 'n4 -> n8 [label="false"]\n' + 'n5 -> n7 []\n' + 'n8 -> n7 []';
+        assert.equal(final, check);});
+});
